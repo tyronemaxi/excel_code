@@ -1,4 +1,8 @@
+import re
 class Sheet:
+
+    def __init__(self):
+        self.capacity = {}
 
     def get(self, column: str):
         """
@@ -6,7 +10,30 @@ class Sheet:
         :param column: 列数
         :return: 该列存储的值，默认为空字符串
         """
-        raise NotImplementedError("Not implemented!")
+        value = self.capacity.get(column, '')
+        keys = self.capacity.keys()
+
+        if value.strip().isdigit():
+            value = value.strip()
+
+        if value and value[0] == '=':
+            # 避免循环
+            if column == value.strip('='):
+                return "#Circular"
+
+            # 正确获取其它列的值
+            if value.strip('=') in keys:
+                value = self.capacity.get(value.strip('='))
+
+            if (value.find('*') or value.find('+')) or value.count('(') > 1:
+                try:
+                    value = eval(value.strip('='))
+                except:
+                    value = ValueError("#Error")
+
+                value = f'{value}'
+
+        return value
 
     def getLiteral(self, column:str):
         """
@@ -14,7 +41,12 @@ class Sheet:
         :param column: 列数
         :return: 该列存储的字符串值，默认为空字符串
         """
-        raise NotImplementedError("Not implemented!")
+        value = self.capacity[column]
+
+        if value:
+            return value
+        else:
+            raise NotImplementedError("Not implemented!")
 
     def put(self, column: str, value: str):
         """
@@ -22,4 +54,8 @@ class Sheet:
         :param column: 列数
         :param value: 在该列需要存储的值
         """
-        raise NotImplementedError("Not implemented!")
+        # 避免循环引用
+        if column:
+            self.capacity[column] = value
+        else:
+            raise NotImplementedError("Not implemented!")
