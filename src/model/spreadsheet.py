@@ -1,4 +1,3 @@
-import re
 class Sheet:
 
     def __init__(self):
